@@ -67,6 +67,14 @@ class DomainQuery
 	/** @var Entity[] */
 	private $entities;
 
+	/** @var stdClass */
+	private $sqlClauses;
+
+	/** @var int */
+	private $offset;
+
+	/** @var int */
+	private $limit;
 
 	/**
 	 * @param IEntityFactory $entityFactory
@@ -92,6 +100,14 @@ class DomainQuery
 			'where' => array(),
 			'orderBy' => array(),
 		);
+
+		$this->sqlClauses = (object) array(
+			'select' => array(),
+			'groupBy' => array(),
+			'orderBy' => array(),
+			'having' => array(),
+		);
+
 		$this->relationshipTables = new ArrayObject;
 		$this->domainQueryHelper = new DomainQueryHelper($mapper, $this->aliases, $this->hydratorMeta, $this->clauses, $this->relationshipTables);
 	}
@@ -113,6 +129,14 @@ class DomainQuery
 		return $this;
 	}
 
+	public function sqlSelect($select)
+	{
+		$this->cleanCache();
+
+		$this->sqlClauses->select += array(func_get_args());
+		return $this;
+	}
+
 	/**
 	 * @param string $entityClass
 	 * @param string $alias
@@ -124,7 +148,7 @@ class DomainQuery
 		$this->cleanCache();
 
 		if ($this->clauses->from !== null) {
-			throw new InvalidMethodCallException;
+			throw new InvalidMethodCallException('Clause FROM was already defined.');
 		}
 		$this->domainQueryHelper->setFrom($entityClass, $alias);
 
@@ -179,9 +203,33 @@ class DomainQuery
     {
 	    $this->cleanCache();
 
-	    $this->domainQueryHelper->addOrderBy($property, $direction);
-	    return $this;
-    }
+		$this->domainQueryHelper->addOrderBy($property, $direction);
+		return $this;
+	}
+
+	public function sqlOrderBy($column, $direction = self::ORDER_ASC)
+	{
+		$this->cleanCache();
+
+		$this->sqlClauses->orderBy += array(func_get_args());
+		return $this;
+	}
+
+	public function sqlGroupBy($column)
+	{
+		$this->cleanCache();
+
+		$this->sqlClauses->groupBy += array(func_get_args());
+		return $this;
+	}
+
+	public function sqlHaving($args)
+	{
+		$this->cleanCache();
+
+		$this->sqlClauses->having[] = func_get_args();
+		return $this;
+	}
 
 	/**
 	 * @return Fluent
@@ -190,7 +238,7 @@ class DomainQuery
 	public function createFluent()
 	{
 		if ($this->clauses->from === null or empty($this->clauses->select)) {
-			throw new InvalidStateException;
+			throw new InvalidStateException('You have to specify SELECT and FROM clauses.');
 		}
 		$statement = $this->connection->command();
 
@@ -207,6 +255,11 @@ class DomainQuery
 					array_merge(array('%n.%n AS %n, %n.%n AS %n, %n.%n AS %n'), $this->relationshipTables[$alias])
 				);
 			}
+		}
+
+		// (native) SQL SELECT
+		foreach ($this->sqlClauses->select as $sqlSelect) {
+			call_user_func_array(array($statement, 'select'), $sqlSelect);
 		}
 
 		$statement->from(array($this->clauses->from['table'] => $this->clauses->from['alias'])); // FROM
@@ -231,6 +284,31 @@ class DomainQuery
 			if ($orderBy[2] === self::ORDER_DESC) {
 				$statement->desc();
 			}
+		}
+
+		// (native) SQL GROUP BY
+		foreach ($this->sqlClauses->groupBy as $sqlGroupBy) {
+			call_user_func_array(array($statement, 'groupBy'), $sqlGroupBy);
+		}
+
+		// (native) SQL HAVING
+		$havingApplied = false;
+		foreach ($this->sqlClauses->having as $sqlHaving) {
+			call_user_func_array(array($statement, $havingApplied === false ? 'having' : 'and'), $sqlHaving);
+			$havingApplied = true;
+		}
+
+		// (native) SQL ORDER
+		foreach ($this->sqlClauses->orderBy as $sqlOrder) {
+			call_user_func_array(array($statement, 'orderBy'), $sqlOrder);
+		}
+
+		if ($this->offset) {
+			$statement->offset($this->offset);
+		}
+
+		if ($this->limit) {
+			$statement->limit($this->limit);
 		}
 
 		return $statement;
@@ -287,6 +365,26 @@ class DomainQuery
 	{
 		$entities = $this->getEntities();
 		return ($entity = reset($entities)) !== false ? $entity : null;
+	}
+
+	/**
+	 * @param int|null $limit
+	 * @return $this
+	 */
+	public function limit($limit = null)
+	{
+		$this->limit = $limit !== null ? (int) $limit : null;
+		return $this;
+	}
+
+	/**
+	 * @param int|null $offset
+	 * @return $this
+	 */
+	public function offset($offset = null)
+	{
+		$this->offset = $offset !== null ? (int) $offset : null;
+		return $this;
 	}
 
 	////////////////////

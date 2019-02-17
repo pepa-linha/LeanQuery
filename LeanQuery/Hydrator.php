@@ -52,9 +52,21 @@ class Hydrator
 			}
 			foreach ($row as $field => $value) {
 				if (!isset($index[$field])) {
-					$index[$field] = explode(QueryHelper::PREFIX_SEPARATOR, $field, 2);
+					if (strpos($field, QueryHelper::PREFIX_SEPARATOR) !== false) {
+						$index[$field] = explode(QueryHelper::PREFIX_SEPARATOR, $field, 2);
+					} else {
+						$index[$field] = array(
+							null,
+							$field,
+						);
+					}
 				}
 				list($prefix, $field) = $index[$field];
+
+				if ($prefix === null) {
+					continue;
+				}
+
 				if (
 					!isset($results[$prefix]) or
 					!isset($currentPrimaryKeys[$prefix]) or
