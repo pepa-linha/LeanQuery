@@ -17,5 +17,11 @@
 	},
 	"require-dev": {
 		"nette/tester": "dev-master"
-	}
+	},
+	"repositories": [
+		{
+			"url": "https://github.com/pepa-linha/LeanMapper.git",
+			"type": "git"
+		}
+	]
 }
