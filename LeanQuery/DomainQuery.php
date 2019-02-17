@@ -395,4 +395,12 @@ class DomainQuery
 		$this->results = $this->entities = NULL;
 	}
 
+	/**
+	 * Helper method to determine whether a SQL subquery for COUNT(*) is needed
+	 * @return bool
+	 */
+	public function needSubqueryForCount()
+	{
+		return !empty($this->sqlClauses->groupBy);
+	}
 }
