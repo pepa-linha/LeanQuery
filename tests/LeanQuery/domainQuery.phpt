@@ -1,6 +1,5 @@
 <?php
 
-use LeanQuery\DomainQuery;
 use LeanQuery\DomainQueryFactory;
 use LeanQuery\Hydrator;
 use LeanQuery\QueryHelper;
@@ -50,26 +49,26 @@ $expected =
 Assert::equal($expected, $queries[0]);
 
 $expected =
-'The Pragmatic Programmer
-	Author: Andrew Hunt
-	Tags:
-		popular
-		ebook
-The Art of Computer Programming
-	Author: Donald Knuth
-	Tags:
-Refactoring: Improving the Design of Existing Code
-	Author: Martin Fowler
-	Tags:
-		ebook
-Introduction to Algorithms
-	Author: Thomas H. Cormen
-	Tags:
-		popular
-UML Distilled
-	Author: Martin Fowler
-	Tags:
-';
+"The Pragmatic Programmer\r\n" .
+"	Author: Andrew Hunt\r\n" .
+"	Tags:\r\n" .
+"		popular\r\n" .
+"		ebook\r\n" .
+"The Art of Computer Programming\r\n" .
+"	Author: Donald Knuth\r\n" .
+"	Tags:\r\n" .
+"Refactoring: Improving the Design of Existing Code\r\n" .
+"	Author: Martin Fowler\r\n" .
+"	Tags:\r\n" .
+"		ebook\r\n" .
+"Introduction to Algorithms\r\n" .
+"	Author: Thomas H. Cormen\r\n" .
+"	Tags:\r\n" .
+"		popular\r\n" .
+"UML Distilled\r\n" .
+"	Author: Martin Fowler\r\n" .
+"	Tags:\r\n"
+;
 
 Assert::equal($expected, $output);
 
@@ -109,13 +108,13 @@ $expected =
 Assert::equal($expected, $queries[0]);
 
 $expected =
-'The Pragmatic Programmer
-	Author: Andrew Hunt
-Refactoring: Improving the Design of Existing Code
-	Author: Martin Fowler
-Introduction to Algorithms
-	Author: Thomas H. Cormen
-';
+"The Pragmatic Programmer\r\n" .
+"	Author: Andrew Hunt\r\n" .
+"Refactoring: Improving the Design of Existing Code\r\n" .
+"	Author: Martin Fowler\r\n" .
+"Introduction to Algorithms\r\n" .
+"	Author: Thomas H. Cormen\r\n"
+;
 
 Assert::equal($expected, $output);
 
@@ -161,20 +160,20 @@ $expected = array(
 Assert::equal($expected, $queries);
 
 $expected =
-'The Pragmatic Programmer
-	Author: Andrew Hunt
-	Tags:
-		popular
-		ebook
-Refactoring: Improving the Design of Existing Code
-	Author: Martin Fowler
-	Tags:
-		ebook
-Introduction to Algorithms
-	Author: Thomas H. Cormen
-	Tags:
-		popular
-';
+"The Pragmatic Programmer\r\n" .
+"	Author: Andrew Hunt\r\n" .
+"	Tags:\r\n" .
+"		popular\r\n" .
+"		ebook\r\n" .
+"Refactoring: Improving the Design of Existing Code\r\n" .
+"	Author: Martin Fowler\r\n" .
+"	Tags:\r\n" .
+"		ebook\r\n" .
+"Introduction to Algorithms\r\n" .
+"	Author: Thomas H. Cormen\r\n" .
+"	Tags:\r\n" .
+"		popular\r\n"
+;
 
 Assert::equal($expected, $output);
 
@@ -221,26 +220,26 @@ $expected =
 Assert::equal($expected, $queries[0]);
 
 $expected =
-'The Pragmatic Programmer
-	Author: Andrew Hunt
-	Tags:
-		ebook
-		popular
-The Art of Computer Programming
-	Author: Donald Knuth
-	Tags:
-UML Distilled
-	Author: Martin Fowler
-	Tags:
-Refactoring: Improving the Design of Existing Code
-	Author: Martin Fowler
-	Tags:
-		ebook
-Introduction to Algorithms
-	Author: Thomas H. Cormen
-	Tags:
-		popular
-';
+"The Pragmatic Programmer\r\n" .
+"	Author: Andrew Hunt\r\n" .
+"	Tags:\r\n" .
+"		ebook\r\n" .
+"		popular\r\n" .
+"The Art of Computer Programming\r\n" .
+"	Author: Donald Knuth\r\n" .
+"	Tags:\r\n" .
+"UML Distilled\r\n" .
+"	Author: Martin Fowler\r\n" .
+"	Tags:\r\n" .
+"Refactoring: Improving the Design of Existing Code\r\n" .
+"	Author: Martin Fowler\r\n" .
+"	Tags:\r\n" .
+"		ebook\r\n" .
+"Introduction to Algorithms\r\n" .
+"	Author: Thomas H. Cormen\r\n" .
+"	Tags:\r\n" .
+"		popular\r\n"
+;
 
 Assert::equal($expected, $output);
 
@@ -253,7 +252,7 @@ $domainQuery = $domainQueryFactory->createQuery();
 $domainQuery->select('b, a')
 	->from('Book', 'b')
 	->join('b.author', 'a')
-	->where('a.name IN %in AND b.available = %b AND %sql', array('Martin Fowler', 'Thomas H. Cormen'), true, '1 = 1', 'AND a.name != ? AND b.name != "b.name"', 'a.name');
+	->where('a.name IN %in AND b.available = %b AND %sql', array('Martin Fowler', 'Thomas H. Cormen'), true, '1 = 1', 'a.name != ? AND b.name != "b.name"', 'a.name');
 
 $books = $domainQuery->getEntities();
 
@@ -277,10 +276,10 @@ $expected =
 Assert::equal($expected, $queries[0]);
 
 $expected =
-'Refactoring: Improving the Design of Existing Code
-	Author: Martin Fowler
-Introduction to Algorithms
-	Author: Thomas H. Cormen
-';
+"Refactoring: Improving the Design of Existing Code\r\n" .
+"	Author: Martin Fowler\r\n" .
+"Introduction to Algorithms\r\n" .
+"	Author: Thomas H. Cormen\r\n"
+;
 
 Assert::equal($expected, $output);

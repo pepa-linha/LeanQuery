@@ -1,9 +1,7 @@
 <?php
 
-use LeanMapper\Connection;
 use LeanQuery\QueryHelper;
 use Tester\Assert;
-use Tester\Dumper;
 
 require_once __DIR__ . '/../bootstrap.php';
 

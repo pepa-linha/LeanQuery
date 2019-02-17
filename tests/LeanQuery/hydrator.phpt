@@ -64,18 +64,18 @@ $expected =
 Assert::equal($expected, $queries[0]);
 
 $expected =
-'Donald Knuth
-	The Art of Computer Programming
-		Donald Knuth
-			The Art of Computer Programming
-Martin Fowler
-	Refactoring: Improving the Design of Existing Code
-		Martin Fowler
-			Refactoring: Improving the Design of Existing Code
-Thomas H. Cormen
-	Introduction to Algorithms
-		Thomas H. Cormen
-			Introduction to Algorithms
-';
+"Donald Knuth\r\n" .
+"	The Art of Computer Programming\r\n" .
+"		Donald Knuth\r\n" .
+"			The Art of Computer Programming\r\n" .
+"Martin Fowler\r\n" .
+"	Refactoring: Improving the Design of Existing Code\r\n" .
+"		Martin Fowler\r\n" .
+"			Refactoring: Improving the Design of Existing Code\r\n" .
+"Thomas H. Cormen\r\n" .
+"	Introduction to Algorithms\r\n" .
+"		Thomas H. Cormen\r\n" .
+"			Introduction to Algorithms\r\n"
+;
 
 Assert::equal($expected, $output);
