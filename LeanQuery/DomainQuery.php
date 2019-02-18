@@ -356,9 +356,11 @@ class DomainQuery
 		if ($this->entities === NULL) {
 			$entities = array();
 			$entityClass = $this->clauses->from['entityClass'];
+			$primaryKey = $this->mapper->getPrimaryKey($this->mapper->getTable($entityClass));
 			$result = $this->getResult($this->clauses->from['alias']);
 			foreach ($result as $key => $row) {
-				$entities[] = $entity = $this->entityFactory->createEntity($entityClass, new Row($result, $key));
+				$entity = $this->entityFactory->createEntity($entityClass, new Row($result, $key));
+				$entities[$entity->{$primaryKey}] = $entity;
 				$entity->makeAlive($this->entityFactory, $this->connection, $this->mapper);
 			}
 			$this->entities = $this->entityFactory->createCollection($entities);
