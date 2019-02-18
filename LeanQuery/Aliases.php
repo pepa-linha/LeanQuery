@@ -41,7 +41,11 @@ class Aliases
 	public function getEntityClass($alias)
 	{
 		if (!$this->hasAlias($alias)) {
-			throw new InvalidArgumentException("Alias $alias was not found.");
+			$hint = ObjectHelpers::getSuggestion(
+					array_keys($this->aliases),
+					$alias);
+
+			throw new InvalidArgumentException("Alias $alias was not found" . ($hint ? ", did you mean '$hint'?" : '.'));
 		}
 		return $this->aliases[$alias];
 	}

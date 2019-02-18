@@ -108,7 +108,12 @@ class DomainQueryHelper
 		);
 		$property = $entityReflection->getEntityProperty($viaProperty);
 		if ($property === NULL || !$property->hasRelationship()) {
-			throw new InvalidArgumentException("Property '$viaProperty' does not exist or has not relation on $fromEntity.");
+
+			$hint = ObjectHelpers::getSuggestion(
+				array_keys($entityReflection->getEntityProperties()),
+				$viaProperty);
+
+			throw new InvalidArgumentException("Property '$viaProperty' does not exist or has not relation on $fromEntity" . ($hint ? ", did you mean '$hint'?" : '.'));
 		}
 		$relationship = $property->getRelationship();
 
@@ -372,7 +377,11 @@ class DomainQueryHelper
                 $entityReflection = $this->getReflection($entityClass);
 		$property = $entityReflection->getEntityProperty($viaProperty);
 		if ($property === null) {
-			throw new InvalidArgumentException("Property '$viaProperty' does not exist or has not relation on $entityClass.");
+			$hint = ObjectHelpers::getSuggestion(
+				array_keys($entityReflection->getEntityProperties()),
+				$viaProperty);
+
+			throw new InvalidArgumentException("Property '$viaProperty' does not exist or has not relation on $entityClass" . ($hint ? ", did you mean '$hint'?" : '.'));
 		}
 
 		$column = $property->getColumn();
