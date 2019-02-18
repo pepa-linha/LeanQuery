@@ -6,7 +6,8 @@ class ObjectHelpers
 {
 	/**
 	 * Finds the best suggestion (for 8-bit encoding).
-	 * @param  (\ReflectionFunctionAbstract|\ReflectionParameter|\ReflectionClass|\ReflectionProperty|string)[]  $possibilities
+	 * @param (\ReflectionFunctionAbstract|\ReflectionParameter|\ReflectionClass|\ReflectionProperty|string)[] $possibilities
+	 * @param string $value
 	 * @return string
 	 *
 	 * @author David Grudl

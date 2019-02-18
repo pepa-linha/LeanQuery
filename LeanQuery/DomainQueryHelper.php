@@ -107,7 +107,7 @@ class DomainQueryHelper
 			$fromEntity = $this->aliases->getEntityClass($fromAlias)
 		);
 		$property = $entityReflection->getEntityProperty($viaProperty);
-		if ($property === NULL || !$property->hasRelationship()) {
+		if ($property === null || !$property->hasRelationship()) {
 
 			$hint = ObjectHelpers::getSuggestion(
 				array_keys($entityReflection->getEntityProperties()),

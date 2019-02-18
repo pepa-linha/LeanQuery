@@ -115,7 +115,7 @@ class DomainQuery
 	/**
 	 * @param string $aliases
 	 * @throws InvalidArgumentException
-	 * @return self
+	 * @return $this
 	 */
 	public function select($aliases)
 	{
@@ -129,6 +129,10 @@ class DomainQuery
 		return $this;
 	}
 
+	/**
+	 * @param $select
+	 * @return $this
+	 */
 	public function sqlSelect($select)
 	{
 		$this->cleanCache();
@@ -141,7 +145,7 @@ class DomainQuery
 	 * @param string $entityClass
 	 * @param string $alias
 	 * @throws InvalidMethodCallException
-	 * @return self
+	 * @return $this
 	 */
 	public function from($entityClass, $alias)
 	{
@@ -159,7 +163,7 @@ class DomainQuery
 	 * @param string $definition
 	 * @param string $alias
 	 * @param string $onCondition
-	 * @return self
+	 * @return $this
 	 */
     public function join($definition, $alias, $onCondition = null)
 	{
@@ -173,7 +177,7 @@ class DomainQuery
 	 * @param string $definition
 	 * @param string $alias
  	 * @param string $onCondition
-	 * @return self
+	 * @return $this
 	 */
     public function leftJoin($definition, $alias, $onCondition = null)
 	{
@@ -198,7 +202,7 @@ class DomainQuery
 	/**
 	 * @param string $property
 	 * @param string $direction
-	 * @return self
+	 * @return $this
 	 * @throws InvalidArgumentException
 	 */
 	public function orderBy($property, $direction = self::ORDER_ASC)
@@ -329,7 +333,7 @@ class DomainQuery
 	 */
 	public function getResult($alias)
 	{
-		if ($this->results === NULL) {
+		if ($this->results === null) {
 			$relationshipFilter = array_keys($this->clauses->select);
 			foreach ($relationshipFilter as $filteredAlias) {
 				if (array_key_exists($filteredAlias, $this->relationshipTables)) {
@@ -353,7 +357,7 @@ class DomainQuery
 	 */
 	public function getEntities()
 	{
-		if ($this->entities === NULL) {
+		if ($this->entities === null) {
 			$entities = array();
 			$entityClass = $this->clauses->from['entityClass'];
 			$primaryKey = $this->mapper->getPrimaryKey($this->mapper->getTable($entityClass));
@@ -402,7 +406,7 @@ class DomainQuery
 
 	private function cleanCache()
 	{
-		$this->results = $this->entities = NULL;
+		$this->results = $this->entities = null;
 	}
 
 	/**
