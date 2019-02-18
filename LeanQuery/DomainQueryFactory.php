@@ -47,7 +47,7 @@ class DomainQueryFactory
 	/**
 	 * @return DomainQuery
 	 */
-	public function createQuery()
+	public function create()
 	{
 		return new DomainQuery($this->enityFactory, $this->connection, $this->mapper, $this->hydrator, $this->queryHelper);
 	}
