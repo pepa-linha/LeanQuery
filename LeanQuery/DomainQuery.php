@@ -158,26 +158,28 @@ class DomainQuery
 	/**
 	 * @param string $definition
 	 * @param string $alias
+	 * @param string $onCondition
 	 * @return self
 	 */
-	public function join($definition, $alias)
+    public function join($definition, $alias, $onCondition = null)
 	{
 		$this->cleanCache();
 
-		$this->domainQueryHelper->addJoinByType($definition, $alias, self::JOIN_TYPE_INNER);
+		$this->domainQueryHelper->addJoinByType($definition, $alias, self::JOIN_TYPE_INNER, array_slice(func_get_args(), 2));
 		return $this;
 	}
 
 	/**
 	 * @param string $definition
 	 * @param string $alias
+ 	 * @param string $onCondition
 	 * @return self
 	 */
-	public function leftJoin($definition, $alias)
+    public function leftJoin($definition, $alias, $onCondition = null)
 	{
 		$this->cleanCache();
 
-		$this->domainQueryHelper->addJoinByType($definition, $alias, self::JOIN_TYPE_LEFT);
+		$this->domainQueryHelper->addJoinByType($definition, $alias, self::JOIN_TYPE_LEFT, array_slice(func_get_args(), 2));
 		return $this;
 	}
 
@@ -273,6 +275,12 @@ class DomainQuery
 				array($statement, 'on'),
 				array_merge(array('%n.%n = %n.%n'), $join['onParameters'])
 			);
+
+			if (isset($join['customOnParameters']) && is_array($join['customOnParameters']) && count($join['customOnParameters']) > 0) {
+				call_user_func_array(
+					array($statement, 'and'), array_values($join['customOnParameters'][0])
+				);
+			}
 		}
 
 		if (!empty($this->clauses->where)) { // WHERE

@@ -66,7 +66,7 @@ class DomainQueryHelper
 	public function getReflection($entityClass)
 	{
 		if (!is_subclass_of($entityClass, 'LeanMapper\Entity')) {
-			throw new InvalidArgumentException;
+			throw new InvalidArgumentException("Class $entityClass is not subclass of LeanMapper\\Entity");
 		}
 		if (!array_key_exists($entityClass, $this->reflections)) {
 			$this->reflections[$entityClass] = $entityClass::getReflection($this->mapper);
@@ -97,17 +97,18 @@ class DomainQueryHelper
 	 * @param string $definition
 	 * @param string $alias
 	 * @param string $type
+	 * @param string $onCondition (optional)
 	 * @throws InvalidArgumentException
 	 */
-	public function addJoinByType($definition, $alias, $type)
+	public function addJoinByType($definition, $alias, $type, $onCondition = null)
 	{
 		list($fromAlias, $viaProperty) = $this->parseDotNotation($definition);
 		$entityReflection = $this->getReflection(
 			$fromEntity = $this->aliases->getEntityClass($fromAlias)
 		);
 		$property = $entityReflection->getEntityProperty($viaProperty);
-		if (!$property->hasRelationship()) {
-			throw new InvalidArgumentException;
+		if ($property === NULL || !$property->hasRelationship()) {
+			throw new InvalidArgumentException("Property '$viaProperty' does not exist or has not relation on $fromEntity.");
 		}
 		$relationship = $property->getRelationship();
 
@@ -134,6 +135,7 @@ class DomainQueryHelper
 				new Relationship($fromAlias, $fromTable, $columnReferencingSourceTable, Relationship::DIRECTION_REFERENCING, $relTableAlias, $relationshipTable, $primaryKey)
 			);
 
+			$this->aliases->addAlias($alias, $property->getType());
 			$this->clauses->join[] = array(
 				'type' => $type,
 				'joinParameters' => array(
@@ -146,8 +148,8 @@ class DomainQueryHelper
 					$alias,
 					$primaryKey = $this->mapper->getPrimaryKey($targetTable),
 				),
+				'customOnParameters' => !empty($onCondition) ? $this->addJoinOn(array_slice(func_get_args(), 3)) : null,
 			);
-			$this->aliases->addAlias($alias, $property->getType());
 
 			$this->hydratorMeta->addTablePrefix($alias, $targetTable);
 			$this->hydratorMeta->addPrimaryKey($targetTable, $primaryKey);
@@ -164,6 +166,7 @@ class DomainQueryHelper
 
 			$this->indexer++;
 		} else {
+			$this->aliases->addAlias($alias, $property->getType());
 			$this->clauses->join[] = array(
 				'type' => $type,
 				'joinParameters' => array(
@@ -185,8 +188,9 @@ class DomainQueryHelper
 						$alias,
 						$columnReferencingSourceTable = $relationship->getColumnReferencingSourceTable(),
 					),
+				'customOnParameters' => !empty($onCondition) ? $this->addJoinOn(array_slice(func_get_args(), 3)) : null,
 			);
-			$this->aliases->addAlias($alias, $property->getType());
+
 
 			$this->hydratorMeta->addTablePrefix($alias, $targetTable);
 			if ($relationship instanceof HasOne) {
@@ -234,6 +238,80 @@ class DomainQueryHelper
 		$this->awaitedParameters = null;
 	}
 
+
+	/**
+	 * @param array|null $arguments
+	 * @return array
+	 */
+	private function addJoinOn(array $arguments = null)
+	{
+		if (empty($arguments)) {
+			return array();
+		}
+
+		$pattern = '/
+				(\'(?:\'\'|[^\'])*\'|"(?:""|[^"])*")| # string
+				%([a-zA-Z~][a-zA-Z0-9~]{0,5})| # modifier
+				(\?) | # placeholder
+				(' . DomainQuery::PATTERN_IDENTIFIER . ')\.(' . DomainQuery::PATTERN_IDENTIFIER . ') # alias.property
+				/xs';
+
+		$this->awaitedParameters = 0;
+		$on = array();
+
+		foreach ($arguments as $argument) {
+			if ($this->awaitedParameters > 0) {
+
+				$tmp = array();
+				foreach($argument as $k => $v) {
+					if (!is_array($v)) {
+						$tmp[] = $v;
+					} else {
+						$tmp[] = '';
+					}
+				}
+
+				$tmp = preg_replace_callback($pattern, array($this, 'translateMatches'), $tmp);
+
+				foreach($argument as $k => $v) {
+					if (is_array($v)) {
+						$tmp[$k] = $v;
+					}
+				}
+
+				$on[] = $tmp;
+
+				$this->awaitedParameters--;
+
+			} else {
+
+				$tmp = array();
+				foreach($argument as $k => $v) {
+					if (!is_array($v)) {
+						$tmp[] = $v;
+					} else {
+						$tmp[] = '';
+					}
+				}
+
+				$tmp = preg_replace_callback($pattern, array($this, 'translateMatches'), $tmp);
+
+				foreach($argument as $k => $v) {
+					if (is_array($v)) {
+						$tmp[$k] = $v;
+					}
+				}
+
+				$on[] = $tmp;
+			}
+		}
+
+		$this->awaitedParameters = null;
+
+		return $on;
+	}
+
+
 	/**
 	 * @param string $property
 	 * @param string $direction
@@ -248,7 +326,7 @@ class DomainQueryHelper
 		$property = $entityReflection->getEntityProperty($property);
 
 		if ($property->hasRelationship()) {
-			throw new InvalidArgumentException;
+			throw new InvalidArgumentException("It is not possible order by property '$property' which has a relation.");
 		}
 		$this->clauses->orderBy[] = array($alias, $property->getColumn(), $direction);
 	}
@@ -265,7 +343,7 @@ class DomainQueryHelper
 	{
 		$matches = array();
 		if (!preg_match('#^\s*(' . DomainQuery::PATTERN_IDENTIFIER . ')\.(' . DomainQuery::PATTERN_IDENTIFIER . ')\s*$#', $definition, $matches)) {
-			throw new InvalidArgumentException;
+			throw new InvalidArgumentException("Invalid argument '$definition' for dot notation parsing.");
 		}
 		return array($matches[1], $matches[2]);
 	}
@@ -288,17 +366,18 @@ class DomainQueryHelper
 		}
 
 		$alias = $matches[4];
-		$property = $matches[5];
+		$viaProperty = $matches[5];
 
 		$entityClass = $this->aliases->getEntityClass($alias);
-		$property = $this->getReflection($entityClass)->getEntityProperty($property);
+                $entityReflection = $this->getReflection($entityClass);
+		$property = $entityReflection->getEntityProperty($viaProperty);
 		if ($property === null) {
-			throw new InvalidArgumentException;
+			throw new InvalidArgumentException("Property '$viaProperty' does not exist or has not relation on $entityClass.");
 		}
 
 		$column = $property->getColumn();
 		if ($column === null) {
-			throw new InvalidArgumentException;
+			throw new InvalidArgumentException("Property '$viaProperty' has not defined column in $entityClass." . ($property->hasRelationship() ? " It has relationship, use JOIN clause on Query." : ""));
 		}
 
 		return "[$alias.$column]";
