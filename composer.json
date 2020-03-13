@@ -13,7 +13,7 @@
 		}
 	},
 	"require": {
-		"tharos/leanmapper": "dev-develop"
+		"tharos/leanmapper": "dev-develop-2"
 	},
 	"require-dev": {
 		"nette/tester": "dev-master"
