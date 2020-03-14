@@ -255,7 +255,7 @@ class DomainQuery
 					$alias
 				)
 			);
-			if (array_key_exists($alias, $this->relationshipTables)) {
+			if (property_exists($this->relationshipTables, $alias)) {
 				call_user_func_array(
 					array($statement, 'select'),
 					array_merge(array('%n.%n AS %n, %n.%n AS %n, %n.%n AS %n'), $this->relationshipTables[$alias])
@@ -336,7 +336,7 @@ class DomainQuery
 		if ($this->results === null) {
 			$relationshipFilter = array_keys($this->clauses->select);
 			foreach ($relationshipFilter as $filteredAlias) {
-				if (array_key_exists($filteredAlias, $this->relationshipTables)) {
+				if (property_exists($this->relationshipTables, $filteredAlias)) {
 					$relationshipFilter[] = $this->relationshipTables[$filteredAlias][0];
 				}
 			}
